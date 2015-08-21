@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+https://github.com/myleott/ark-twokenize-py/blob/master/twokenize.py
+
 Twokenize -- a tokenizer designed for Twitter text in English and some other European languages.
 This tokenizer code has gone through a long history:
 (1) Brendan O'Connor wrote original version in Python, http://github.com/brendano/tweetmotif

@@ -2,7 +2,7 @@ import HTMLParser, re, string, nltk
 import ujson as json
 from ark_twokenize import *
 
-json_tweet_file_name = 'reduced_train.json'
+json_tweet_file_name = 'train.json'
 words_work_file_name = 'dictionary.txt'
 norm_tweets_file_name = 'normalized_tweets.txt'
 
@@ -11,10 +11,9 @@ pLink = re.compile(r'https*:\S+\.\w+', re.IGNORECASE)
 pMention = re.compile(r'@[A-Za-z0-9_]+\b')
 pNewLine = re.compile(r'[\r\n]+')
 pRetweet = re.compile(r'\brt\b', re.IGNORECASE)
-punctuation = { 0x2018:0x27, 0x2019:0x27, 0x201C:0x22, 0x201D:0x22 }
+punctuation = {0x2018:0x27, 0x2019:0x27, 0x201C:0x22, 0x201D:0x22}
 h = HTMLParser.HTMLParser()
 
-# def get_normalized_word(w, p):
 def get_normalized_word(w):
     """
     Returns normalized word or None, if it doesn't have a normalized representation.
@@ -40,11 +39,11 @@ def filter_words(text, stopset):
     """
     Keep only words that pass get_normalized_word(), return them as a list ---- origin method
     """
-    # naive tokenization
-    words = text.split()
+    # # naive tokenization
+    # words = text.split()
 
-    # # ArkTweetNLP tokenizer
-    # words = tokenizeRawTweetText(text)
+    # ArkTweetNLP tokenizer
+    words = tokenizeRawTweetText(text)
 
     tokens = []
     for w in words:
@@ -57,11 +56,12 @@ def filter_words(text, stopset):
 
                 tokens.append(normalized_word)
 
-    tokens = stemmer_lemmatizer(tokens)
+    # tokens = stemmer_lemmatizer(tokens)
 
     return tokens
 
 def stemmer_lemmatizer(tokens):
+
     wnl = nltk.WordNetLemmatizer()
     return [wnl.lemmatize(t) for t in tokens]
 
@@ -72,6 +72,7 @@ def stemmer_lemmatizer(tokens):
     # return [lancaster.stem(t) for t in tokens]
 
 def build_stopwords_set():
+
     directory = "/Users/tl8313/Documents/work_project/svm-scikit/"
 
     stop1 = nltk.corpus.stopwords.words('english')
@@ -121,7 +122,7 @@ def prepare_normalized_tweets(json_tweet_file_name, output_file_name, stopset):
                 new.append(item.encode('utf-8'))
 
             # print words, type(words), type(new), new
-            label = row['work_label']
+            label = row['time_label']
             tpl = (str(label), ' '.join(new))
             normalized_tweets.append(tpl)
             
