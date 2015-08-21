@@ -1,15 +1,14 @@
 import ujson as json
 import timeit, math, time
+from collections import defaultdict
 
 def timestamp2datetime(timestamp_ms):
     
     return time.ctime(int(int(timestamp_ms)/1000.0))
 
-def read_daily_json_write_train_label(one_day_before, directory, record0, MONTHS):
+def read_daily_json_write_train_label(daily_json, record0, MONTHS, train_json, before_dict, after_dict):
 
-    train_json = open(directory + "train.json", "w")
-
-    for line in open(one_day_before, 'r'):
+    for line in open(daily_json, 'r'):
         
         tweet = json.loads(line.decode('utf-8'))
         # tweet.keys() = [u'filtering', u'contributors', u'truncated', u'text', u'in_reply_to_status_id', u'id', u'favorite_count', u'datetime retrieved', u'source', u'quoted_status_id', u'retweeted', u'coordinates', u'timestamp_ms', u'quoted_status', u'entities', u'in_reply_to_screen_name', u'id_str', u'retweet_count', u'in_reply_to_user_id', u'favorited', u'user', u'geo', u'in_reply_to_user_id_str', u'possibly_sensitive', u'lang', u'created_at', u'quoted_status_id_str', u'filter_level', u'in_reply_to_status_id_str', u'place']
@@ -28,8 +27,10 @@ def read_daily_json_write_train_label(one_day_before, directory, record0, MONTHS
 
         if (record[0] <= record0[0]) and (MONTHS.index(record[1]) <= MONTHS.index(record0[1])) and (record[2] <= record0[2]) and (record[4] < record0[4]):
             time_label = 'before'
+            before_dict[msg_id] += 1
         else:
             time_label = 'after'
+            after_dict[msg_id] += 1
 
         basic = {}
         basic['msg_id'] = msg_id
@@ -66,9 +67,21 @@ def main():
     record0 = parse_datetime(event_time)
 
     directory = "/Users/tl8313/Documents/ROC_shooting/"
+    # input daily Twitter json files
     one_day_before = "19-08-2015.json"
+    one_day_after = "20-08-2015.json"
 
-    read_daily_json_write_train_label(one_day_before, directory, record0, MONTHS)
+    # output destination
+    train_json = open(directory + "train.json", "w")
+
+    before_dict = defaultdict(int)
+    after_dict = defaultdict(int)
+
+    for daily_json in [one_day_before, one_day_after]:
+        read_daily_json_write_train_label(daily_json, record0, MONTHS, train_json, before_dict, after_dict)
+
+    print "Number of tweets before shooting: " + str(len(before_dict))
+    print "Number of tweets after shooting: " + str(len(after_dict))
 
     ##### mark the ending time of process #####
     end = timeit.default_timer()
