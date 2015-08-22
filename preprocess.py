@@ -1,4 +1,4 @@
-import HTMLParser, re, string, nltk
+import HTMLParser, re, string, nltk, timeit, math
 import ujson as json
 from ark_twokenize import *
 
@@ -23,7 +23,9 @@ def get_normalized_word(w):
     if pMention.match(w):
         return '[@SOMEONE]'
     if type(w) is unicode:
-        w = w.translate(punctuation).encode('ascii', 'ignore')  # find ASCII equivalents for unicode quotes
+        # w1 = w.translate(punctuation).encode('ascii', 'ignore')  # find ASCII equivalents for unicode quotes
+        w = w.translate(punctuation)
+        # w3 = w.translate(punctuation).encode('unicode-escape')  # find unicode-escape equivalents for unicode quotes
     if len(w) < 1:
         return None
     if w[0] == '#':
@@ -42,18 +44,16 @@ def filter_words(text, stopset):
     # # naive tokenization
     # words = text.split()
 
-    # ArkTweetNLP tokenizer
+    # # ArkTweetNLP tokenizer
     words = tokenizeRawTweetText(text)
 
     tokens = []
+
     for w in words:
         normalized_word = get_normalized_word(w)
-
         if normalized_word is not None:
-
             # remove stopwords from normalized tweet
             if normalized_word not in stopset:
-
                 tokens.append(normalized_word)
 
     # tokens = stemmer_lemmatizer(tokens)
@@ -71,9 +71,20 @@ def stemmer_lemmatizer(tokens):
     # lancaster = nltk.LancasterStemmer()
     # return [lancaster.stem(t) for t in tokens]
 
-def build_stopwords_set():
+def build_slang_dict(directory):
 
-    directory = "/Users/tl8313/Documents/work_project/svm-scikit/"
+    slang = directory + 'slangdict.txt'
+
+    slangdict = dict()
+
+    for line in open(slang, "r"):
+        sl = (line.split("-")[0]).strip().lower()
+        mean = (line.split("-")[1]).strip().lower()
+        slangdict[sl] = mean
+
+    return slangdict
+
+def build_stopwords_set(directory):
 
     stop1 = nltk.corpus.stopwords.words('english')
 
@@ -154,13 +165,25 @@ def read_normalized_tweets(norm_tweets_file_name):
     
 if __name__ == '__main__':
 
-    # real stopset    
-    # stopset = build_stopwords_set()
+    # mark the beginning time of process
+    start = timeit.default_timer()
 
-    # empty stopset
+    directory = "/Users/tl8313/Documents/ROC_shooting/"
+
+    # # eal stopset    
+    # stopset = build_stopwords_set(directory)
+    # # empty stopset
     stopset = set()
+
+    slangdict = build_slang_dict(directory)
 
     prepare_words_file(json_tweet_file_name, words_work_file_name, stopset)
     prepare_normalized_tweets(json_tweet_file_name, norm_tweets_file_name, stopset)
 
-
+    ##### mark the ending time of process #####
+    end = timeit.default_timer()
+    seconds = math.ceil(end - start)
+    # Convert Secs Into Human Readable Time String (HH:MM:SS)
+    m, s = divmod(seconds, 60)
+    h, m = divmod(m, 60)
+    print "This process took %d:%02d:%02d" % (h, m, s)
