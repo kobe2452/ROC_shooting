@@ -26,10 +26,10 @@ def read_daily_json_write_train_label(daily_json, record0, MONTHS, train_json, b
         record = parse_datetime(datetime)
 
         if (record[0] <= record0[0]) and (MONTHS.index(record[1]) <= MONTHS.index(record0[1])) and (record[2] <= record0[2]) and (record[4] < record0[4]):
-            time_label = 'before'
+            time_label = -1
             before_dict[msg_id] += 1
         else:
-            time_label = 'after'
+            time_label = +1
             after_dict[msg_id] += 1
 
         basic = {}
