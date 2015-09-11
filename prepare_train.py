@@ -3,7 +3,7 @@ import timeit, math, time
 from collections import defaultdict
 
 def timestamp2datetime(timestamp_ms):
-    
+    # USAGE: http://www.tutorialspoint.com/python/time_ctime.htm
     return time.ctime(int(int(timestamp_ms)/1000.0))
 
 def read_daily_json_write_train_label(daily_json, record0, MONTHS, train_json, before_dict, after_dict):
@@ -21,25 +21,27 @@ def read_daily_json_write_train_label(daily_json, record0, MONTHS, train_json, b
         userid = user['id']
 
         timestamp_ms = tweet['timestamp_ms']
-        datetime = timestamp2datetime(timestamp_ms)
+        print timestamp_ms
 
-        record = parse_datetime(datetime)
+        # datetime = timestamp2datetime(timestamp_ms)
 
-        if (record[0] <= record0[0]) and (MONTHS.index(record[1]) <= MONTHS.index(record0[1])) and (record[2] <= record0[2]) and (record[4] < record0[4]):
-            time_label = -1
-            before_dict[msg_id] += 1
-        else:
-            time_label = +1
-            after_dict[msg_id] += 1
+        # record = parse_datetime(datetime)
 
-        basic = {}
-        basic['msg_id'] = msg_id
-        basic['message'] = message
-        basic['userid'] = userid
-        basic['time_label'] = time_label
+        # if (record[0] <= record0[0]) and (MONTHS.index(record[1]) <= MONTHS.index(record0[1])) and (record[2] <= record0[2]) and (record[4] < record0[4]):
+        #     time_label = -1
+        #     before_dict[msg_id] += 1
+        # else:
+        #     time_label = +1
+        #     after_dict[msg_id] += 1
 
-        json.dump(basic, train_json)
-        train_json.write("\n")
+        # basic = {}
+        # basic['msg_id'] = msg_id
+        # basic['message'] = message
+        # basic['userid'] = userid
+        # basic['time_label'] = time_label
+
+        # json.dump(basic, train_json)
+        # train_json.write("\n")
 
 def parse_datetime(datetime):
 
