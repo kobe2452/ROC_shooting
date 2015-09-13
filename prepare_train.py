@@ -6,14 +6,16 @@ from pytz import timezone
 
 def timestamp2datetime(timestamp_ms):
     # USAGE: http://www.tutorialspoint.com/python/time_ctime.htm
-    return time.ctime(int(int(timestamp_ms)/1000.0))
+    return time.ctime(int(timestamp_ms/1000.0))
 
 def pytz_function(timestamp_ms):
 
     utc = pytz.utc
-    fmt = '%Y-%m-%d %H:%M:%S %Z%z'
+    # reference: https://docs.python.org/2/library/time.html#time.strftime
+    # format matching event_time in main()
+    fmt = '%a %b %d %H:%M:%S %Y %Z%z'
 
-    utc_dt = utc.localize(datetime.utcfromtimestamp((float(timestamp_ms)/1000.0)))
+    utc_dt = utc.localize(datetime.utcfromtimestamp((timestamp_ms/1000.0)))
     utc_output = utc_dt.strftime(fmt)
 
     au_tz = timezone('US/Eastern')
@@ -36,19 +38,20 @@ def read_daily_json_write_train_label(daily_json, record0, MONTHS, train_json, b
         # user.keys() = [u'follow_request_sent', u'profile_use_background_image', u'id', u'verified', u'profile_image_url_https', u'profile_sidebar_fill_color', u'is_translator', u'geo_enabled', u'profile_text_color', u'followers_count', u'protected', u'location', u'default_profile_image', u'id_str', u'utc_offset', u'statuses_count', u'description', u'friends_count', u'profile_link_color', u'profile_image_url', u'notifications', u'profile_background_image_url_https', u'profile_background_color', u'profile_banner_url', u'profile_background_image_url', u'screen_name', u'lang', u'profile_background_tile', u'favourites_count', u'name', u'url', u'created_at', u'contributors_enabled', u'time_zone', u'profile_sidebar_border_color', u'default_profile', u'following', u'listed_count']
         userid = user['id']
 
-        # method 1 using time.ctime
-        timestamp_ms = tweet['timestamp_ms']
-        local_output1 = timestamp2datetime(timestamp_ms)
+        timestamp_ms = float(tweet['timestamp_ms'])
 
-        # method 2 provided by Chris
-        created_at = tweet['created_at']
-        utc_output = datetime.strptime(created_at, "%a %b %d %H:%M:%S +0000 %Y")
-        local_output2 = utc_output - timedelta(hours = 4)
+        # method 1 using time.ctime
+        # local_output1 = timestamp2datetime(timestamp_ms)
+
+        # # method 2 provided by Chris
+        # created_at = tweet['created_at']
+        # utc_output = datetime.strptime(created_at, "%a %b %d %H:%M:%S +0000 %Y")
+        # local_output2 = utc_output - timedelta(hours = 4)
 
         # method 3 using pytz, http://pytz.sourceforge.net/
         local_output3 = pytz_function(timestamp_ms)[1]
-        
-        # record = parse_datetime(datetime)
+
+        record = parse_datetime(local_output3)
 
         # if (record[0] <= record0[0]) and (MONTHS.index(record[1]) <= MONTHS.index(record0[1])) and (record[2] <= record0[2]) and (record[4] < record0[4]):
         #     time_label = -1
@@ -66,9 +69,9 @@ def read_daily_json_write_train_label(daily_json, record0, MONTHS, train_json, b
         # json.dump(basic, train_json)
         # train_json.write("\n")
 
-def parse_datetime(datetime):
+def parse_datetime(datetime_format):
 
-    datetime_elements = datetime.split()
+    datetime_elements = datetime_format.split()
     day = datetime_elements[0]
     month = datetime_elements[1]
     date = datetime_elements[2]
@@ -77,8 +80,9 @@ def parse_datetime(datetime):
     minute = moment.split(":")[1]
     second = moment.split(":")[2]
     year = datetime_elements[4]
+    timezone = datetime_elements[5]
     
-    record = int(year), month, int(date), day, int(hour), int(minute), int(second)
+    record = int(year), month, int(date), day, int(hour), int(minute), int(second), timezone
 
     return record
 
@@ -88,7 +92,7 @@ def main():
 
     MONTHS = [u'Jan', u'Feb', u'Mar', u'Apr', u'May', u'Jun', u'Jul', u'Aug', u'Sep', u'Oct', u'Nov', u'Dec']
 
-    event_time = "Wed Aug 19 23:00:00 2015"
+    event_time = "Wed Aug 19 23:00:00 2015 EDT-0400"
     record0 = parse_datetime(event_time)
 
     directory = "/Users/tl8313/Documents/ROC_shooting/"
