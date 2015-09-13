@@ -1,10 +1,26 @@
 import ujson as json
-import timeit, math, time
+import timeit, math, time, pytz
 from collections import defaultdict
+from datetime import datetime, timedelta
+from pytz import timezone
 
 def timestamp2datetime(timestamp_ms):
     # USAGE: http://www.tutorialspoint.com/python/time_ctime.htm
     return time.ctime(int(int(timestamp_ms)/1000.0))
+
+def pytz_function(timestamp_ms):
+
+    utc = pytz.utc
+    fmt = '%Y-%m-%d %H:%M:%S %Z%z'
+
+    utc_dt = utc.localize(datetime.utcfromtimestamp((float(timestamp_ms)/1000.0)))
+    utc_output = utc_dt.strftime(fmt)
+
+    au_tz = timezone('US/Eastern')
+    au_dt = au_tz.normalize(utc_dt.astimezone(au_tz))
+    local_output = au_dt.strftime(fmt)
+
+    return utc_output, local_output
 
 def read_daily_json_write_train_label(daily_json, record0, MONTHS, train_json, before_dict, after_dict):
 
@@ -20,11 +36,18 @@ def read_daily_json_write_train_label(daily_json, record0, MONTHS, train_json, b
         # user.keys() = [u'follow_request_sent', u'profile_use_background_image', u'id', u'verified', u'profile_image_url_https', u'profile_sidebar_fill_color', u'is_translator', u'geo_enabled', u'profile_text_color', u'followers_count', u'protected', u'location', u'default_profile_image', u'id_str', u'utc_offset', u'statuses_count', u'description', u'friends_count', u'profile_link_color', u'profile_image_url', u'notifications', u'profile_background_image_url_https', u'profile_background_color', u'profile_banner_url', u'profile_background_image_url', u'screen_name', u'lang', u'profile_background_tile', u'favourites_count', u'name', u'url', u'created_at', u'contributors_enabled', u'time_zone', u'profile_sidebar_border_color', u'default_profile', u'following', u'listed_count']
         userid = user['id']
 
+        # method 1 using time.ctime
         timestamp_ms = tweet['timestamp_ms']
-        print timestamp_ms
+        local_output1 = timestamp2datetime(timestamp_ms)
 
-        # datetime = timestamp2datetime(timestamp_ms)
+        # method 2 provided by Chris
+        created_at = tweet['created_at']
+        utc_output = datetime.strptime(created_at, "%a %b %d %H:%M:%S +0000 %Y")
+        local_output2 = utc_output - timedelta(hours = 4)
 
+        # method 3 using pytz, http://pytz.sourceforge.net/
+        local_output3 = pytz_function(timestamp_ms)[1]
+        
         # record = parse_datetime(datetime)
 
         # if (record[0] <= record0[0]) and (MONTHS.index(record[1]) <= MONTHS.index(record0[1])) and (record[2] <= record0[2]) and (record[4] < record0[4]):
